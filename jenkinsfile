@@ -5,6 +5,12 @@ pipeline{
         nodejs "node"
     }
 
+    environment{
+        imageName = "bertlshoferwe/react-app"
+        regcred = "bertlshoferwe"
+        dockerImage = ""
+    }
+
     stages{
         stage('Install Dependencies') {
             steps{
@@ -15,6 +21,24 @@ pipeline{
         stage('Test'){
             steps{
                 sh 'npm test'
+            }
+        }
+
+        stage("building-image"){
+            steps{
+                script{
+                    dockerImage = docker.build imageName
+                }
+            }
+        }
+
+        stage("deploy-image"){
+            steps{
+                script{
+                    docker.withRegistry("https://registry.hub.docker.com", "Docker_Creds"){
+                        dockerImage.push("${env.BUILD_NUMBER}")
+                    }
+                }
             }
         }
 
